@@ -9,6 +9,7 @@ validateVaultResponse () {
   fi
 }
 
+if [ -f /env/variables ]; then source /env/variables; fi
 if [ -z ${RENEW_INTERVAL+x} ]; then RENEW_INTERVAL=21600; else echo "RENEW_INTERVAL is set to '${RENEW_INTERVAL}'"; fi
 
 while true
