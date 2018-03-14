@@ -38,6 +38,42 @@ do
         echo "Token not renewed, ttl: ${CURRENT_TTL}"
     fi
 
+    #######################################################################
+
+    # Renew secrets if they we have their lease ids
+
+    lease_ids=$(echo ${LEASE_IDS} | tr "," "\n")
+
+    for lease_id in $lease_ids
+    do
+        LEASE_LOOKUP_RESPONSE=$(curl -sS --request PUT \
+          --header "X-Vault-Token: ${VAULT_TOKEN}" \
+          ${VAULT_ADDR}/v1/sys/leases/lookup \
+          -H "Content-Type: application/json" \
+          -d '{"lease_id":"'"${lease_id}"'"}' | \
+          jq -r 'if .errors then . else .data end')
+        validateVaultResponse "lease lookup (${lease_id})" "${LEASE_LOOKUP_RESPONSE}"
+
+        RENEWAL_TTL=$(expr ${RENEW_INTERVAL} \* 2)
+        CURRENT_TTL=$(echo ${LEASE_LOOKUP_RESPONSE} | jq -r '.ttl')
+
+        # Only renew if the current ttl is below twice the renew interval
+        if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL} ]; then
+            echo "Renewing secret: ${lease_ids}"
+
+            SECRET_RENEW=$(curl -sS --request PUT \
+              --header "X-Vault-Token: ${VAULT_TOKEN}" \
+              ${VAULT_ADDR}/v1/sys/leases/renew \
+              -H "Content-Type: application/json" \
+              -d '{"lease_id":"'"${lease_id}"'"}' | \
+              jq -r 'if .errors then . else . end')
+            validateVaultResponse "renew secret ($lease_id)" "${SECRET_RENEW}"
+
+            echo "Secret renewed"
+        else
+            echo "Secret not renewed, ttl: ${CURRENT_TTL}"
+        fi
+    done
+
     sleep ${RENEW_INTERVAL}
 done
-
