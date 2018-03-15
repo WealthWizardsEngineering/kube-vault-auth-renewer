@@ -21,11 +21,13 @@ do
     validateVaultResponse 'token lookup' "${TOKEN_LOOKUP_RESPONSE}"
 
     CREATION_TTL=$(echo ${TOKEN_LOOKUP_RESPONSE} | jq -r '.data.creation_ttl')
-    RENEWAL_TTL=$(expr ${CREATION_TTL} / 2)
     CURRENT_TTL=$(echo ${TOKEN_LOOKUP_RESPONSE} | jq -r '.data.ttl')
+    RENEW_INTERVAL_TTL_THRESHOLD=$(expr ${RENEW_INTERVAL} \* 2)
+    RENEWAL_TTL_THRESHOLD=$(expr ${CREATION_TTL} / 2)
 
     # Only renew if the current ttl is below half the original ttl
-    if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL} ]; then
+    # and if there's any risk of it expiring before the next renewal check
+    if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL_THRESHOLD} -a ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
         echo "Renewing token from Vault server: ${VAULT_ADDR}"
 
         TOKEN_RENEW=$(curl -sS --request POST \
@@ -55,11 +57,11 @@ do
           jq -r 'if .errors then . else .data end')
         validateVaultResponse "lease lookup (${lease_id})" "${LEASE_LOOKUP_RESPONSE}"
 
-        RENEWAL_TTL=$(expr ${RENEW_INTERVAL} \* 2)
+        RENEW_INTERVAL_TTL_THRESHOLD=$(expr ${RENEW_INTERVAL} \* 2)
         CURRENT_TTL=$(echo ${LEASE_LOOKUP_RESPONSE} | jq -r '.ttl')
 
-        # Only renew if the current ttl is below twice the renew interval
-        if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL} ]; then
+        # Only renew if there's any risk of it expiring before the next renewal check
+        if [ ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
             echo "Renewing secret: ${lease_ids}"
 
             SECRET_RENEW=$(curl -sS --request PUT \
