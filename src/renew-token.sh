@@ -62,7 +62,7 @@ do
 
         # Only renew if there's any risk of it expiring before the next renewal check
         if [ ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
-            echo "Renewing secret: ${lease_ids}"
+            echo "Renewing secret: ${lease_ids}, ttl: ${CURRENT_TTL}"
 
             SECRET_RENEW=$(curl -sS --request PUT \
               --header "X-Vault-Token: ${VAULT_TOKEN}" \
