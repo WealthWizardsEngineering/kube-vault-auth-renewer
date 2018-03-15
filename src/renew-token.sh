@@ -27,8 +27,8 @@ do
 
     # Only renew if the current ttl is below half the original ttl
     # and if there's any risk of it expiring before the next renewal check
-    if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL_THRESHOLD} -a ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
-        echo "Renewing token from Vault server: ${VAULT_ADDR}"
+    if [ ${CURRENT_TTL} -lt ${RENEWAL_TTL_THRESHOLD} -o ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
+        echo "Renewing token from Vault server: ${VAULT_ADDR}, ttl: ${CURRENT_TTL}"
 
         TOKEN_RENEW=$(curl -sS --request POST \
           --header "X-Vault-Token: ${VAULT_TOKEN}" \
