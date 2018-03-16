@@ -18,8 +18,9 @@ that the secrets remain valid for the lifetime of the pod.
 
 Once the pod is terminated, the auth token and secrets are left to expire.
 
-This can be used in conjunction with the Kubernetes Vault Auth Init image which will authenticate against Vault
-and provide a mechanism for injecting the secrets into your service container. 
+This can be used in conjunction with the [Kubernetes Vault Auth Init](https://github.com/WealthWizardsEngineering/kube-vault-auth-init)
+image which will authenticate against Vault and provide a mechanism for injecting the secrets into your service
+container. 
 
 ## Prerequisites
 
@@ -69,16 +70,7 @@ kind: Deployment
 apiVersion: extensions/v1beta1
 metadata:
   name: my-app
-  annotations:
-    tags: my-app
 spec:
-  replicas: 1
-  minReadySeconds: 35
-  revisionHistoryLimit: 3
-  strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -91,7 +83,7 @@ spec:
         emptyDir: {}
       initContainers:
       - name: vault-init
-        image: daveshepherd/kubernetes-vault-auth-init
+        image: wealthwizardsengineering/kube-vault-auth-init
         env:
         - name: KUBERNETES_AUTH_PATH
           value: "kubernetes"
@@ -106,7 +98,7 @@ spec:
           mountPath: /env
       containers:
       - name: vault-renewer
-        image: daveshepherd/kubernetes-vault-auth-renewer
+        image: wealthwizardsengineering/kube-vault-auth-renewer
         env:
         - name: VAULT_ADDR
           value: "https://vault.example.com"
@@ -115,8 +107,6 @@ spec:
           mountPath: /env
       - name: my-app
         image: my-app
-        imagePullPolicy: Always
-        terminationMessagePath: "/var/log/my-app_termination.log"
         command: ["/bin/sh", "-c", "source /env/variables; ./run-my-app.sh"]
         volumeMounts:
         - name: shared-data
