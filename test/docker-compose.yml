@@ -1,0 +1,29 @@
+version: "3"
+services:
+  mongo:
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=my-token
+    image: mongo
+    ports:
+      - "27017:27017"
+
+  vault:
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=my-token
+    image: vault
+    ports:
+      - "8200:8200"
+
+  test:
+    build: ..
+    command: /usr/test/test.sh
+    environment:
+      - VAULT_ADDR=http://vault:8200
+      - SETUP_VAULT_TOKEN=my-token
+    depends_on:
+      - mongo
+      - vault
+    volumes:
+      - "../src:/usr/src"
+      - ".:/usr/test"
+    working_dir: /usr/src
