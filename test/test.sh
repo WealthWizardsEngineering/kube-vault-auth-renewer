@@ -11,6 +11,7 @@ sleep 10
 
 source ${DIR}/tests/testEmptyLeaseIds.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenNoTokenProvided.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testErrorReturnedWhenVaultAuthenticationFails.sh || TEST_SUITE_RESULT=1
 
 if [[ "TEST_SUITE_RESULT" -gt 0 ]]; then
     printf "\n************************\n"
