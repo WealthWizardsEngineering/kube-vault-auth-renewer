@@ -1,11 +1,33 @@
 #!/usr/bin/env sh
 
-set -eo pipefail
-
 validateVaultResponse () {
-  if echo ${2} | grep "errors"; then
-    echo "ERROR: unable to retrieve ${1}: ${2}"
-    exit 1
+  local action="$1"
+  local responsePayload="$2"
+
+  if echo "${responsePayload}" | grep "errors" > /dev/null; then
+    local message=$(echo "${responsePayload}" | jq -r '.[] | join (",")')
+    echo "ERROR: unable to retrieve ${action}, error message: ${message}" >&2
+    return 1
+  else
+    return 0
+  fi
+
+}
+
+lookupToken () {
+  local vault_token=$1
+
+  response="$(VAULT_TOKEN=${vault_token} vault token lookup -format=json 2>&1)"
+  if [[ $? -gt 0 ]]; then
+    echo "ERROR: unable to retrieve token, error message: ${response}" >&2
+    return 1
+  else
+    if validateVaultResponse "token" "${response}"; then
+      echo ${response}
+      return 0
+    else
+      return 1
+    fi
   fi
 }
 
@@ -15,19 +37,19 @@ validateVaultResponse () {
 
 #########################################################################
 
-if [ -f ${VARIABLES_FILE} ]; then source ${VARIABLES_FILE}; fi
-if [ -z ${RENEW_INTERVAL+x} ]; then RENEW_INTERVAL=21600; else echo "RENEW_INTERVAL is set to '${RENEW_INTERVAL}'"; fi
+if [[ -f ${VARIABLES_FILE} ]]; then source ${VARIABLES_FILE}; fi
+if [[ -z ${RENEW_INTERVAL+x} ]]; then RENEW_INTERVAL=21600; else echo "Renewal interval is set to '${RENEW_INTERVAL}'"; fi
+[[ -z ${VAULT_TOKEN+x} ]] && echo "ERROR: VAULT_TOKEN is not set" && exit 1
 
 while true
 do
-    TOKEN_LOOKUP_RESPONSE=$(curl -sS \
-      --header "X-Vault-Token: ${VAULT_TOKEN}" \
-      ${VAULT_ADDR}/v1/auth/token/lookup-self | \
-      jq -r 'if .errors then . else . end')
-    validateVaultResponse 'token lookup' "${TOKEN_LOOKUP_RESPONSE}"
+    token_lookup_response=$(lookupToken ${VAULT_TOKEN})
+    if [[ $? -gt 0 ]]; then
+      exit 1
+    fi
 
-    CREATION_TTL=$(echo ${TOKEN_LOOKUP_RESPONSE} | jq -r '.data.creation_ttl')
-    CURRENT_TTL=$(echo ${TOKEN_LOOKUP_RESPONSE} | jq -r '.data.ttl')
+    CREATION_TTL=$(echo ${token_lookup_response} | jq -r '.data.creation_ttl')
+    CURRENT_TTL=$(echo ${token_lookup_response} | jq -r '.data.ttl')
     RENEW_INTERVAL_TTL_THRESHOLD=$(expr ${RENEW_INTERVAL} \* 2)
     RENEWAL_TTL_THRESHOLD=$(expr ${CREATION_TTL} / 2)
 

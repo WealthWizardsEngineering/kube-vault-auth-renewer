@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 printf "\n************************\n"
-printf "Running test: Test that vault renewer runs without an lease ids\n"
+printf "Running test: Test that vault renewer runs without any lease ids\n"
 
 ################################################
 
