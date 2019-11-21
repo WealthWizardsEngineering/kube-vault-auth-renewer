@@ -24,6 +24,20 @@ function assertEquals()
     fi
 }
 
+function assertNotEquals()
+{
+    local MESSAGE="$1"
+    local EXPECTED_STRING="$2"
+    local ACTUAL_STRING="$3"
+
+    if [[ "${EXPECTED_STRING}" != "${ACTUAL_STRING}" ]]; then
+        return 0
+    else
+        printf "FAILED: ${MESSAGE}, expected: ${EXPECTED_STRING}, but was: ${ACTUAL_STRING}\n"
+        return 1
+    fi
+}
+
 function assertStartsWith()
 {
     local MESSAGE="$1"
@@ -78,5 +92,5 @@ function assertVaultToken()
 
 function cleanEnv()
 {
-    unset VARIABLES_FILE LEASE_IDS
+    unset VARIABLES_FILE LEASE_IDS RUN_ONCE RENEW_INTERVAL
 }

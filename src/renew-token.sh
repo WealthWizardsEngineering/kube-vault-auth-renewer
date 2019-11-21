@@ -71,7 +71,7 @@ do
 
     #######################################################################
 
-    # Renew secrets if they we have their lease ids
+    # Renew secrets if we have their lease ids
 
     lease_ids=$(echo ${LEASE_IDS} | tr "," "\n")
 
@@ -106,7 +106,7 @@ do
         fi
     done
 
-    if [[ "${RENEW_INTERVAL}" -lt 0 ]]; then
+    if [[ "${RUN_ONCE}" = "true" ]]; then
       exit 0
     else
       sleep ${RENEW_INTERVAL}

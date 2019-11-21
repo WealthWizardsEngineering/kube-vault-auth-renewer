@@ -7,10 +7,11 @@ printf "Running test: Test that vault renewer runs without any lease ids\n"
 
 # set up inputs for this test
 export VARIABLES_FILE=$(mktemp -d)/variables
-export RENEW_INTERVAL=-1
+export RENEW_INTERVAL=60
+export RUN_ONCE=true
 
 echo "" | VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy write my-policy -
-TEST_VAULT_TOKEN=$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token create -policy=my-policy -period=1m -field=token)
+TEST_VAULT_TOKEN=$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token create -policy=my-policy -period=1h -field=token)
 
 echo "export VAULT_TOKEN=${TEST_VAULT_TOKEN}" > ${VARIABLES_FILE}
 echo "export LEASE_IDS=" >> ${VARIABLES_FILE}
