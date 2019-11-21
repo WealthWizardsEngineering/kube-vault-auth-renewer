@@ -9,6 +9,7 @@ TEST_SUITE_RESULT=0
 echo "Waiting for test data to load..."
 sleep 10
 
+source ${DIR}/tests/testVaultTokenCanBeRenewed.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testEmptyLeaseIds.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testSingleLeaseCanBeRenewed.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenNoTokenProvided.sh || TEST_SUITE_RESULT=1
