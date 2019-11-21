@@ -33,7 +33,7 @@ function assertNotEquals()
     if [[ "${EXPECTED_STRING}" != "${ACTUAL_STRING}" ]]; then
         return 0
     else
-        printf "FAILED: ${MESSAGE}, expected: ${EXPECTED_STRING}, but was: ${ACTUAL_STRING}\n"
+        printf "FAILED: ${MESSAGE}, expected not: ${EXPECTED_STRING}, but was: ${ACTUAL_STRING}\n"
         return 1
     fi
 }

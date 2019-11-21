@@ -10,7 +10,7 @@ export VARIABLES_FILE=$(mktemp -d)/variables
 export RENEW_INTERVAL=60
 export RUN_ONCE=true
 
-echo "" | VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy write my-policy -
+echo "" | VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy write my-policy - > /dev/null
 TEST_VAULT_TOKEN=$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token create -policy=my-policy -period=1h -field=token)
 
 echo "export VAULT_TOKEN=${TEST_VAULT_TOKEN}" > ${VARIABLES_FILE}
@@ -23,8 +23,8 @@ RESULT="${PIPESTATUS[0]}"
 ################################################
 
 # clean up
-VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy delete my-policy
-VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token revoke ${TEST_VAULT_TOKEN}
+VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy delete my-policy > /dev/null
+VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token revoke ${TEST_VAULT_TOKEN} > /dev/null
 
 cleanEnv
 
