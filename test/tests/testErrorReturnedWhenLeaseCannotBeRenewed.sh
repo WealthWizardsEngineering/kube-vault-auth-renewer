@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 printf "\n************************\n"
-printf "Running test: Test that a lease with sufficiently long ttl does not get renewed\n"
+printf "Running test: Test that the an error response is returned when the max ttl is reached and a lease cannot be renewed\n"
 
 ################################################
 
@@ -25,27 +25,22 @@ VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault write database/config/my-mongodb-database
 VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault write database/roles/my-role \
     db_name=my-mongodb-database \
     creation_statements='{ "db": "admin", "roles": [{ "role": "readWrite" }, {"role": "read", "db": "foo"}] }' \
-    default_ttl="1h" \
-    max_ttl="1h" > /dev/null > /dev/null
+    default_ttl="1s" \
+    max_ttl="1s" > /dev/null > /dev/null
 
 lease_id="$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault read -field=lease_id database/creds/my-role)"
 echo "export LEASE_IDS=${lease_id}" >> ${VARIABLES_FILE}
 
+# Wait for lease to expire
+sleep 5
+
 /usr/src/renew-token.sh  2>&1 >&1 | sed 's/^/>> /'
-RESULT="${PIPESTATUS[0]}"
-[ "${RESULT}" -gt "0" ] && printf "ERROR: Script returned a non-zero exit code\n"
-
-################################################
-
-# assert output
-last_renewal=$(curl -sS --request PUT \
-    --header "X-Vault-Token: ${SETUP_VAULT_TOKEN}" \
-    ${VAULT_ADDR}/v1/sys/leases/lookup \
-    -H "Content-Type: application/json" \
-    -d '{"lease_id":"'"${lease_id}"'"}' | \
-    jq -r 'if .errors then . else .data.last_renewal end')
-
-assertEquals "lease should not have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
+if [ "${PIPESTATUS}" -gt "0" ]; then
+    RESULT=0
+else
+    printf "ERROR: Expected the script to return a error code, but it returned a success code\n"
+    RESULT=1
+fi
 
 ################################################
 

@@ -83,7 +83,8 @@ do
           -H "Content-Type: application/json" \
           -d '{"lease_id":"'"${lease_id}"'"}' | \
           jq -r 'if .errors then . else .data end')
-        validateVaultResponse "lease lookup (${lease_id})" "${LEASE_LOOKUP_RESPONSE}"
+
+        validateVaultResponse "lease (${lease_id})" "${LEASE_LOOKUP_RESPONSE}" || exit 1
 
         RENEW_INTERVAL_TTL_THRESHOLD=$(expr ${RENEW_INTERVAL} \* 2)
         CURRENT_TTL=$(echo ${LEASE_LOOKUP_RESPONSE} | jq -r '.ttl')
@@ -98,7 +99,7 @@ do
               -H "Content-Type: application/json" \
               -d '{"lease_id":"'"${lease_id}"'"}' | \
               jq -r 'if .errors then . else . end')
-            validateVaultResponse "renew secret ($lease_id)" "${SECRET_RENEW}"
+            validateVaultResponse "renew lease ($lease_id)" "${SECRET_RENEW}" || exit 1
 
             echo "Secret renewed"
         else

@@ -9,12 +9,13 @@ TEST_SUITE_RESULT=0
 echo "Waiting for test data to load..."
 sleep 10
 
-source ${DIR}/tests/testVaultTokenCanBeRenewed.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testEmptyLeaseIds.sh || TEST_SUITE_RESULT=1
-source ${DIR}/tests/testSingleLeaseCanBeRenewed.sh || TEST_SUITE_RESULT=1
-source ${DIR}/tests/testLeaseDoesNotNeedRenewing.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testErrorReturnedWhenLeaseCannotBeRenewed.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenNoTokenProvided.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenVaultAuthenticationFails.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testLeaseDoesNotNeedRenewing.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testSingleLeaseCanBeRenewed.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testVaultTokenCanBeRenewed.sh || TEST_SUITE_RESULT=1
 
 if [[ "TEST_SUITE_RESULT" -gt 0 ]]; then
     printf "\n************************\n"
