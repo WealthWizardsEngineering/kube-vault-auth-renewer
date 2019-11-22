@@ -32,7 +32,7 @@ lease_id="$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault read -field=lease_id database
 echo "export LEASE_IDS=${lease_id}" >> ${VARIABLES_FILE}
 
 # Wait so that the lease ttl has decreased a little
-sleep 10
+sleep 5
 
 /usr/src/renew-token.sh  2>&1 >&1 | sed 's/^/>> /'
 if [ "${PIPESTATUS}" -gt "0" ]; then

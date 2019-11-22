@@ -12,6 +12,7 @@ sleep 10
 source ${DIR}/tests/testEmptyLeaseIds.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenLeaseCannotBeRenewed.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenLeaseMaxTtlReached.sh || TEST_SUITE_RESULT=1
+source ${DIR}/tests/testErrorReturnedWhenTokenMaxTtlReached.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenNoTokenProvided.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testErrorReturnedWhenVaultAuthenticationFails.sh || TEST_SUITE_RESULT=1
 source ${DIR}/tests/testLeaseDoesNotNeedRenewing.sh || TEST_SUITE_RESULT=1
