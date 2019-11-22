@@ -6,7 +6,11 @@ validateVaultResponse () {
 
   if echo "${responsePayload}" | grep "errors" > /dev/null; then
     local message=$(echo "${responsePayload}" | jq -r '.[] | join (",")')
-    echo "ERROR: unable to retrieve ${action}, error message: ${message}" >&2
+    echo "ERROR: request returned errors ${action}, error message: ${message}" >&2
+    return 1
+  elif [[ $(echo "${responsePayload}" | jq -r '.warnings != null') == "true" ]]; then
+    local message=$(echo "${responsePayload}" | jq -r '.warnings | join (",")')
+    echo "ERROR: request returned warnings ${action}, warning message: ${message}" >&2
     return 1
   else
     return 0
@@ -62,7 +66,7 @@ do
           --header "X-Vault-Token: ${VAULT_TOKEN}" \
           ${VAULT_ADDR}/v1/auth/token/renew-self | \
           jq -r 'if .errors then . else .auth.client_token end')
-        validateVaultResponse 'renew token' "${TOKEN_RENEW}"
+        validateVaultResponse 'renew token' "${TOKEN_RENEW}" || exit 1
 
         echo "Token renewed"
     else
@@ -97,8 +101,7 @@ do
               --header "X-Vault-Token: ${VAULT_TOKEN}" \
               ${VAULT_ADDR}/v1/sys/leases/renew \
               -H "Content-Type: application/json" \
-              -d '{"lease_id":"'"${lease_id}"'"}' | \
-              jq -r 'if .errors then . else . end')
+              -d '{"lease_id":"'"${lease_id}"'"}')
             validateVaultResponse "renew lease ($lease_id)" "${SECRET_RENEW}" || exit 1
 
             echo "Secret renewed"
