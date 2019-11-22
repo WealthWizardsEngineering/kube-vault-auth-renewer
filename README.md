@@ -83,7 +83,7 @@ spec:
         emptyDir: {}
       initContainers:
       - name: vault-init
-        image: wealthwizardsengineering/kube-vault-auth-init
+        image: quay.io/wealthwizards/kube-vault-auth-init
         env:
         - name: KUBERNETES_AUTH_PATH
           value: "kubernetes"
@@ -98,7 +98,7 @@ spec:
           mountPath: /env
       containers:
       - name: vault-renewer
-        image: wealthwizardsengineering/kube-vault-auth-renewer
+        image: quay.io/wealthwizards/kube-vault-auth-renewer
         env:
         - name: VAULT_ADDR
           value: "https://vault.example.com"
