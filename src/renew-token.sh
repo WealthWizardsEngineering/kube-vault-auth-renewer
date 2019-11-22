@@ -87,9 +87,9 @@ do
         if [ ${CURRENT_TTL} -lt ${RENEW_INTERVAL_TTL_THRESHOLD} ]; then
             response=$(vault lease renew -format=json ${lease_id})
             validateVaultResponse "renew lease ($lease_id)" "${response}" || exit 1
-            echo "Secret renewed: ${lease_ids}, ttl: ${CURRENT_TTL}"
+            echo "Secret renewed: ${lease_id}, ttl: ${CURRENT_TTL}"
         else
-            echo "Secret not renewed: ${lease_ids}, ttl: ${CURRENT_TTL}"
+            echo "Secret not renewed: ${lease_id}, ttl: ${CURRENT_TTL}"
         fi
     done
 

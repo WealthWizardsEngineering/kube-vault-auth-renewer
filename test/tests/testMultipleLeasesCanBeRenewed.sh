@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 printf "\n************************\n"
-printf "Running test: Test that a lease with sufficiently long ttl does not get renewed\n"
+printf "Running test: Test that mulitple leases are renewed when the remaining ttl is low\n"
 
 ################################################
 
@@ -25,11 +25,13 @@ VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault write database/config/my-mongodb-database
 VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault write database/roles/my-role \
     db_name=my-mongodb-database \
     creation_statements='{ "db": "admin", "roles": [{ "role": "readWrite" }, {"role": "read", "db": "foo"}] }' \
-    default_ttl="1h" \
+    default_ttl="1m" \
     max_ttl="1h" > /dev/null > /dev/null
 
-lease_id="$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault read -field=lease_id database/creds/my-role)"
-echo "export LEASE_IDS=${lease_id}" >> ${VARIABLES_FILE}
+lease_id1="$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault read -field=lease_id database/creds/my-role)"
+lease_id2="$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault read -field=lease_id database/creds/my-role)"
+
+echo "export LEASE_IDS=${lease_id1},${lease_id2}" >> ${VARIABLES_FILE}
 
 /usr/src/renew-token.sh  2>&1 >&1 | sed 's/^/>> /'
 RESULT="${PIPESTATUS[0]}"
@@ -42,10 +44,20 @@ last_renewal=$(curl -sS --request PUT \
     --header "X-Vault-Token: ${SETUP_VAULT_TOKEN}" \
     ${VAULT_ADDR}/v1/sys/leases/lookup \
     -H "Content-Type: application/json" \
-    -d '{"lease_id":"'"${lease_id}"'"}' | \
+    -d '{"lease_id":"'"${lease_id1}"'"}' | \
     jq -r '.data.last_renewal')
 
-assertEquals "lease should not have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
+assertNotEquals "lease 1 should have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
+
+# assert output
+last_renewal=$(curl -sS --request PUT \
+    --header "X-Vault-Token: ${SETUP_VAULT_TOKEN}" \
+    ${VAULT_ADDR}/v1/sys/leases/lookup \
+    -H "Content-Type: application/json" \
+    -d '{"lease_id":"'"${lease_id2}"'"}' | \
+    jq -r '.data.last_renewal')
+
+assertNotEquals "lease 2 should have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
 
 ################################################
 

@@ -43,7 +43,7 @@ last_renewal=$(curl -sS --request PUT \
     ${VAULT_ADDR}/v1/sys/leases/lookup \
     -H "Content-Type: application/json" \
     -d '{"lease_id":"'"${lease_id}"'"}' | \
-    jq -r 'if .errors then . else .data.last_renewal end')
+    jq -r '.data.last_renewal')
 
 assertNotEquals "lease should have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
 

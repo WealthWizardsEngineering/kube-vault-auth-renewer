@@ -27,7 +27,7 @@ last_renewal=$(curl -sS --request PUT \
     ${VAULT_ADDR}/v1/auth/token/lookup \
     -H "Content-Type: application/json" \
     -d '{"token":"'"${TEST_VAULT_TOKEN}"'"}' | \
-    jq -r 'if .errors then . else .data.last_renewal end')
+    jq -r '.data.last_renewal')
 
 assertNotEquals "token should have a renewal date set if it's been renewed" "null" "${last_renewal}" || RESULT=1
 
