@@ -10,7 +10,7 @@ export VARIABLES_FILE=$(mktemp -d)/variables
 export RENEW_INTERVAL=180
 export RUN_ONCE=true
 
-echo "" | VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy write my-policy - > /dev/null
+echo 'path "*" { policy = "read" }' | VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy write my-policy - > /dev/null
 TEST_VAULT_TOKEN=$(VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token create -policy=my-policy -period=1m -field=token)
 
 echo "export VAULT_TOKEN=${TEST_VAULT_TOKEN}" > ${VARIABLES_FILE}
@@ -34,6 +34,7 @@ assertNotEquals "token should have a renewal date set if it's been renewed" "nul
 ################################################
 
 # clean up
+VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault policy delete my-policy > /dev/null
 VAULT_TOKEN=${SETUP_VAULT_TOKEN} vault token revoke ${TEST_VAULT_TOKEN} > /dev/null
 
 cleanEnv
