@@ -1,3 +1,9 @@
+> [!WARNING]
+> **This repository is deprecated.** The `quay.io/wealthwizards/kube-vault-auth-renewer`
+> image will be unavailable from **30 September 2026**. After that date any
+> workload using this image will fail to start, because the image can no longer
+> be pulled. Migrate off it before then.
+
 # Kubernetes Vault Auth Renewer Docker Image
 
 This Docker image is designed to keep [Vault](https://www.vaultproject.io) auth tokens and secret leases alive for the
